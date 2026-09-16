@@ -1,0 +1,38 @@
+# Секреты и переменные окружения
+.env
+*.env
+!.env.example
+
+# Ключи и сертификаты
+*.pem
+*.key
+*.crt
+*.p12
+id_rsa*
+*.pfx
+
+# Резервные копии
+*.sql
+*.dump
+*.tar
+*.tar.gz
+*.zip
+backup*/
+
+# Docker
+docker-compose.override.yml
+
+# Логи
+*.log
+logs/
+
+# Данные, которые не должны попадать в репозиторий
+data/
+volumes/
+
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
