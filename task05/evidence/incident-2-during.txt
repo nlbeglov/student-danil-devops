@@ -1,0 +1,31 @@
+Проверка: 2026-10-04T09:37:56+0300    внесённый сбой: database
+
+[1/7] Контейнеры
+NAME              IMAGE                           COMMAND                  SERVICE   CREATED                  STATUS                                     PORTS
+task05-caddy-1    caddy:2.11.4                    "caddy run --config …"   caddy     2 hours ago              Up 2 hours                                 0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 443/udp, 2019/tcp
+task05-db-1       docker.io/library/postgres:14   "docker-entrypoint.s…"   db        44 hours ago             Up 37 hours (healthy)                      5432/tcp
+task05-server-1   docker.gitea.com/gitea:1.27.3   "/usr/bin/entrypoint…"   server    Less than a second ago   Up Less than a second (health: starting)   22/tcp, 3000/tcp
+  OK    запущено 3 из 3
+
+[2/7] HTTPS и редирект
+  FAIL  https://git.politblocks.com/ -> 502 (ожидалось 200)
+  OK    http -> редирект 308
+
+[3/7] Закрытый репозиторий недоступен без авторизации
+  FAIL  анонимный API -> 502 (ожидалось 404/401/403)
+  --    анонимный clone не проверяется: HTTPS недоступен
+
+[4/7] Вход пользователя review-user
+  FAIL  вход не удался (HTTP 502)
+
+[5/7] Clone, исходный коммит и контрольная сумма check.txt
+  FAIL  clone не удался
+        fatal: unable to access 'https://git.politblocks.com/review-user/demo.git/': The requested URL returned error: 502
+
+[6/7] Новый push с отдельным файлом
+  --    пропущено (запуск без аргумента push или clone не удался)
+
+[7/7] Эталонная конфигурация не менялась
+  OK    docker-compose.yml и Caddyfile совпадают с эталоном
+
+ИТОГ: есть провалы

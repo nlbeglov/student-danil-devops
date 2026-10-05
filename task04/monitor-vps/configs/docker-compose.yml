@@ -1,0 +1,54 @@
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.16
+    restart: unless-stopped
+    volumes:
+      - ../data/kuma:/app/data         # kuma.db: мониторы, уведомления, пользователь
+
+  ntfy:
+    image: binwiederhier/ntfy:v2.11.0
+    restart: unless-stopped
+    command: serve
+    environment:
+      - NTFY_BASE_URL=https://${NTFY_DOMAIN}
+      - NTFY_LISTEN_HTTP=:80
+# реальный IP клиента берётся из X-Forwarded-For (Caddy)
+      - NTFY_BEHIND_PROXY=true
+# история сообщений переживает рестарт
+      - NTFY_CACHE_FILE=/var/lib/ntfy/cache.db
+# пользователи и права
+      - NTFY_AUTH_FILE=/var/lib/ntfy/user.db
+# анонимно нельзя ни читать, ни публиковать
+      - NTFY_AUTH_DEFAULT_ACCESS=deny-all
+# форма входа в веб-клиенте
+      - NTFY_ENABLE_LOGIN=true
+# саморегистрация выключена
+      - NTFY_ENABLE_SIGNUP=false
+    volumes:
+      - ../data/ntfy:/var/lib/ntfy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:2.11.4
+    restart: unless-stopped
+    depends_on:
+      - uptime-kuma
+      - ntfy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - KUMA_DOMAIN=${KUMA_DOMAIN}
+      - NTFY_DOMAIN=${NTFY_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

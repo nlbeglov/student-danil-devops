@@ -1,0 +1,3 @@
+{$TARGET_DOMAIN} {
+	reverse_proxy nginx:80
+}

@@ -1,0 +1,4 @@
+services:
+  server:
+    volumes:
+      - ../data/gitea:/data:ro

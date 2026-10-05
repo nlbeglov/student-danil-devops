@@ -1,0 +1,4 @@
+services:
+  server:
+    environment:
+      - GITEA__database__HOST=postgres-db:5432

@@ -1,0 +1,11 @@
+[Unit]
+Description=Task03: резервная копия (pg_dump + файлы -> restic)
+# Docker должен быть запущен: скрипт обращается к контейнеру db
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Тот же скрипт, что запускается вручную: ./scripts/backup.sh
+# @PROJECT_DIR@ подставляет scripts/install-timer.sh
+ExecStart=@PROJECT_DIR@/scripts/backup.sh

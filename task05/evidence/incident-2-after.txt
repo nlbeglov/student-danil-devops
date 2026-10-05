@@ -1,0 +1,32 @@
+Проверка: 2026-10-04T09:41:54+0300    внесённый сбой: нет
+
+[1/7] Контейнеры
+NAME              IMAGE                           COMMAND                  SERVICE   CREATED         STATUS                            PORTS
+task05-caddy-1    caddy:2.11.4                    "caddy run --config …"   caddy     5 seconds ago   Up 4 seconds                      0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 443/udp, 2019/tcp
+task05-db-1       docker.io/library/postgres:14   "docker-entrypoint.s…"   db        44 hours ago    Up 37 hours (healthy)             5432/tcp
+task05-server-1   docker.gitea.com/gitea:1.27.3   "/usr/bin/entrypoint…"   server    6 seconds ago   Up 4 seconds (health: starting)   22/tcp, 3000/tcp
+  OK    запущено 3 из 3
+
+[2/7] HTTPS и редирект
+  OK    https://git.politblocks.com/ -> 200
+  OK    http -> редирект 308
+
+[3/7] Закрытый репозиторий недоступен без авторизации
+  OK    анонимный API -> 404
+  OK    анонимный clone отклонён
+
+[4/7] Вход пользователя review-user
+  OK    вход выполнен (API /user -> 200)
+
+[5/7] Clone, исходный коммит и контрольная сумма check.txt
+  OK    clone выполнен
+  OK    исходный коммит в истории: 92f9bf1592d4a5cc45e90767164ac03f97a3c8a5
+  OK    SHA-256 check.txt совпадает: 7e7733ff0982d931645c43e95712b0ae5e0eae27993a1815913d23fa42fbef29
+
+[6/7] Новый push с отдельным файлом
+  OK    push выполнен: push-test-20261004-094155.txt
+
+[7/7] Эталонная конфигурация не менялась
+  OK    docker-compose.yml и Caddyfile совпадают с эталоном
+
+ИТОГ: все проверки пройдены

@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:14
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      # данные лежат рядом с configs/ (в git не попадают), пути относительные от каталога compose-файла
+      - ../data/postgres:/var/lib/postgresql/data
+      # выполняется только при первом старте на пустом каталоге данных
+      - ./01-items.sql:/docker-entrypoint-initdb.d/01-items.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # ports: НЕТ — PostgreSQL доступен только во внутренней сети Compose
+
+  caddy:
+    image: caddy:2.11.4
+    restart: unless-stopped
+    environment:
+      - DOMAIN=${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # тестовые файлы a.txt, b.txt, c.txt (создаёт scripts/prepare-data.sh)
+      - ../data/files:/srv/files:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

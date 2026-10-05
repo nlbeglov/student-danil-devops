@@ -1,0 +1,12 @@
+[Unit]
+Description=Запуск task03-backup.service по расписанию
+
+[Timer]
+# @ONCALENDAR@ подставляет scripts/install-timer.sh:
+#   daily -> *-*-* 03:15:00 (ежедневно), test -> *-*-* *:*:00 (каждую минуту, только для проверки расписания)
+OnCalendar=@ONCALENDAR@
+# Если VPS был выключен в момент запуска, копия делается при следующей загрузке
+Persistent=true
+
+[Install]
+WantedBy=timers.target
