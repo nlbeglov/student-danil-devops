@@ -57,13 +57,14 @@ docker compose ps
 ```bash
 # остановка записи → дамп → файлы → конфигурация → шифрование gpg; копия лежит в backups/
 ../scripts/backup.sh
-# (необязательно) сразу скопировать вне VPS: BACKUP_REMOTE=user@host:/path ../scripts/backup.sh
+cat ../secrets/credentials.txt
 
 # восстановление в отдельный проект с новыми томами; исходный проект остановлен
 docker compose stop
 ../scripts/restore.sh task01-restore /opt/task01-restore ../backups/backup-<время>.tar.gz.gpg files
-../scripts/check.sh /opt/task01-restore files
-docker compose up -d                     # основной стенд снова запущен (восстановленный: cd /opt/task01-restore/configs && docker compose stop)
+../scripts/check.sh /opt/task01-restore input
+cd /opt/task01-restore/configs && docker compose stop
+docker compose up -d
 ```
 Режим секретов `input` — пароль архива и значения `.env` вводятся с клавиатуры, `files` — пароль берётся из `credentials.txt`, значения `.env` из готового файла (по умолчанию `secrets/credentials.txt` и `configs/.env` этого проекта; другие пути — переменными `CREDENTIALS_FILE`, `ENV_FILE`; `ASSUME_YES=1` убирает вопрос подтверждения). Если исходного VPS уже нет, возьмите с собой архив, `credentials.txt` (или пароль архива) и `.env`.
 
