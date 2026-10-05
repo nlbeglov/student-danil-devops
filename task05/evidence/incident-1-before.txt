@@ -1,32 +1,38 @@
-Проверка: 2026-10-04T07:51:22+0300    внесённый сбой: нет
+Проверка: 2026-10-06T01:16:09+0300    внесённый сбой: нет
 
-[1/7] Контейнеры
-NAME              IMAGE                           COMMAND                  SERVICE   CREATED          STATUS                    PORTS
-task05-caddy-1    caddy:2.11.4                    "caddy run --config …"   caddy     25 seconds ago   Up 24 seconds             0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 443/udp, 2019/tcp
-task05-db-1       docker.io/library/postgres:14   "docker-entrypoint.s…"   db        43 hours ago     Up 35 hours (healthy)     5432/tcp
-task05-server-1   docker.gitea.com/gitea:1.27.3   "/usr/bin/entrypoint…"   server    26 seconds ago   Up 24 seconds (healthy)   22/tcp, 3000/tcp
+[1/9] Контейнеры
+NAME              IMAGE                           COMMAND                  SERVICE   CREATED             STATUS                    PORTS
+task05-caddy-1    caddy:2.11.4                    "caddy run --config …"   caddy     59 minutes ago      Up 32 minutes             80/tcp, 443/tcp, 2019/tcp, 443/udp
+task05-db-1       docker.io/library/postgres:14   "docker-entrypoint.s…"   db        About an hour ago   Up 32 minutes (healthy)   5432/tcp
+task05-server-1   docker.gitea.com/gitea:1.27.3   "/usr/bin/entrypoint…"   server    About an hour ago   Up 32 minutes (healthy)   22/tcp, 3000/tcp
   OK    запущено 3 из 3
 
-[2/7] HTTPS и редирект
-  OK    https://git.politblocks.com/ -> 200
+[2/9] HTTPS и редирект
+  OK    https://a4.fdghyt.com/ -> 200
   OK    http -> редирект 308
 
-[3/7] Закрытый репозиторий недоступен без авторизации
+[3/9] Закрытый репозиторий недоступен без авторизации
   OK    анонимный API -> 404
   OK    анонимный clone отклонён
 
-[4/7] Вход пользователя review-user
+[4/9] Вход пользователя review-user
   OK    вход выполнен (API /user -> 200)
 
-[5/7] Clone, исходный коммит и контрольная сумма check.txt
+[5/9] Clone, исходный коммит и контрольная сумма check.txt
   OK    clone выполнен
-  OK    исходный коммит в истории: 92f9bf1592d4a5cc45e90767164ac03f97a3c8a5
+  OK    исходный коммит в истории: b5d32d9e96d30988d5a3322a6fd0e0ceebcdbea3
   OK    SHA-256 check.txt совпадает: 7e7733ff0982d931645c43e95712b0ae5e0eae27993a1815913d23fa42fbef29
 
-[6/7] Новый push с отдельным файлом
+[6/9] Новый push с отдельным файлом
   --    пропущено (запуск без аргумента push или clone не удался)
 
-[7/7] Эталонная конфигурация не менялась
+[7/9] Эталонная конфигурация не менялась
   OK    docker-compose.yml и Caddyfile совпадают с эталоном
+
+[8/9] Регистрация закрыта
+  OK    формы регистрации нет (HTTP 200)
+
+[9/9] Вход администратора review-admin
+  OK    review-admin вошёл и является администратором
 
 ИТОГ: все проверки пройдены

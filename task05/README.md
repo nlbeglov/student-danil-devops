@@ -12,7 +12,7 @@ Gitea · PostgreSQL · Caddy · Docker Compose. Рабочий стенд с д�
 
 | Сервис | Образ | Назначение |
 |---|---|---|
-| caddy | `caddy:2.11.4` | собственный Caddy задания: по HTTP внутри сети, проксирует на `server:3000` (его upstream ломает сбой `proxy`); порты наружу не публикует |
+| caddy | `caddy:2.11.4` | собственный Caddy задания: по HTTP внутри сети, проксирует на `task05-server:3000` (его upstream ломает сбой `proxy`); порты наружу не публикует |
 | общий Caddy | `caddy:2.11.4` | `common/caddy`: HTTPS и редирект для `a4.fdghyt.com`, проксирует на `task05-caddy:80` |
 | server | `docker.gitea.com/gitea:1.27.3` | Gitea; регистрация закрыта (`DISABLE_REGISTRATION=true`) |
 | db | `postgres:14` | база Gitea, только во внутренней сети Compose |
@@ -75,7 +75,7 @@ cp .env.example .env && nano .env        # DOMAIN=a4.fdghyt.com
 
 | Сбой | Команда | Что ломается | Симптом | Разбор |
 |---|---|---|---|---|
-| Неверный порт Gitea в upstream Caddy | `fault.sh proxy` | связь Caddy → Gitea | 502, контейнеры `Up`, в логах Caddy `connection refused` на `server:3001` | [incident-1-proxy.md](evidence/incident-1-proxy.md) |
+| Неверный порт Gitea в upstream Caddy | `fault.sh proxy` | связь Caddy → Gitea | 502, контейнеры `Up`, в логах Caddy `connection refused` на `task05-server:3001` | [incident-1-proxy.md](evidence/incident-1-proxy.md) |
 | Неверное имя хоста PostgreSQL в настройках Gitea | `fault.sh database` | связь Gitea → БД | 502, `server` в `health: starting`, в логах `no such host` | [incident-2-database.md](evidence/incident-2-database.md) |
 | Том данных Gitea только для чтения | `fault.sh readonly` | запись Gitea на диск | 502, в логах `Read-only file system` | [incident-3-readonly.md](evidence/incident-3-readonly.md) |
 

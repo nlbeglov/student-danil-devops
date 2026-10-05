@@ -3,5 +3,5 @@
 }
 
 :80 {
-	reverse_proxy server:3001
+	reverse_proxy task05-server:3001
 }

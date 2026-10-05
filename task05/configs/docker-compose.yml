@@ -17,6 +17,11 @@ services:
       - GITEA__DEFAULT__APP_NAME=Diagnostics Lab
     volumes:
       - ../data/gitea:/data
+    networks:
+      default:
+        # уникальное имя: в общей сети edge у других заданий тоже есть сервис server, а Caddy задания видит обе сети
+        aliases:
+          - task05-server
     depends_on:
       db:
         condition: service_healthy

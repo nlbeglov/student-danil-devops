@@ -1,31 +1,37 @@
-Проверка: 2026-10-04T07:51:36+0300    внесённый сбой: proxy
+Проверка: 2026-10-06T01:16:55+0300    внесённый сбой: proxy
 
-[1/7] Контейнеры
-NAME              IMAGE                           COMMAND                  SERVICE   CREATED          STATUS                    PORTS
-task05-caddy-1    caddy:2.11.4                    "caddy run --config …"   caddy     8 seconds ago    Up 7 seconds              0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 443/udp, 2019/tcp
-task05-db-1       docker.io/library/postgres:14   "docker-entrypoint.s…"   db        43 hours ago     Up 35 hours (healthy)     5432/tcp
-task05-server-1   docker.gitea.com/gitea:1.27.3   "/usr/bin/entrypoint…"   server    40 seconds ago   Up 39 seconds (healthy)   22/tcp, 3000/tcp
+[1/9] Контейнеры
+NAME              IMAGE                           COMMAND                  SERVICE   CREATED             STATUS                    PORTS
+task05-caddy-1    caddy:2.11.4                    "caddy run --config …"   caddy     45 seconds ago      Up 45 seconds             80/tcp, 443/tcp, 2019/tcp, 443/udp
+task05-db-1       docker.io/library/postgres:14   "docker-entrypoint.s…"   db        About an hour ago   Up 33 minutes (healthy)   5432/tcp
+task05-server-1   docker.gitea.com/gitea:1.27.3   "/usr/bin/entrypoint…"   server    About an hour ago   Up 33 minutes (healthy)   22/tcp, 3000/tcp
   OK    запущено 3 из 3
 
-[2/7] HTTPS и редирект
-  FAIL  https://git.politblocks.com/ -> 502 (ожидалось 200)
+[2/9] HTTPS и редирект
+  FAIL  https://a4.fdghyt.com/ -> 502 (ожидалось 200)
   OK    http -> редирект 308
 
-[3/7] Закрытый репозиторий недоступен без авторизации
+[3/9] Закрытый репозиторий недоступен без авторизации
   FAIL  анонимный API -> 502 (ожидалось 404/401/403)
   --    анонимный clone не проверяется: HTTPS недоступен
 
-[4/7] Вход пользователя review-user
+[4/9] Вход пользователя review-user
   FAIL  вход не удался (HTTP 502)
 
-[5/7] Clone, исходный коммит и контрольная сумма check.txt
+[5/9] Clone, исходный коммит и контрольная сумма check.txt
   FAIL  clone не удался
-        fatal: unable to access 'https://git.politblocks.com/review-user/demo.git/': The requested URL returned error: 502
+        fatal: unable to access 'https://a4.fdghyt.com/review-user/demo.git/': The requested URL returned error: 502
 
-[6/7] Новый push с отдельным файлом
+[6/9] Новый push с отдельным файлом
   --    пропущено (запуск без аргумента push или clone не удался)
 
-[7/7] Эталонная конфигурация не менялась
+[7/9] Эталонная конфигурация не менялась
   OK    docker-compose.yml и Caddyfile совпадают с эталоном
+
+[8/9] Регистрация закрыта
+  FAIL  форма регистрации доступна (HTTP 502)
+
+[9/9] Вход администратора review-admin
+  FAIL  вход review-admin не удался или нет прав администратора (HTTP 502)
 
 ИТОГ: есть провалы

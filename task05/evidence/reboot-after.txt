@@ -1,10 +1,10 @@
-Проверка: 2026-10-06T01:18:16+0300    внесённый сбой: нет
+Проверка: 2026-10-06T01:34:00+0300    внесённый сбой: нет
 
 [1/9] Контейнеры
-NAME              IMAGE                           COMMAND                  SERVICE   CREATED             STATUS                    PORTS
-task05-caddy-1    caddy:2.11.4                    "caddy run --config …"   caddy     15 seconds ago      Up 14 seconds             80/tcp, 443/tcp, 2019/tcp, 443/udp
-task05-db-1       docker.io/library/postgres:14   "docker-entrypoint.s…"   db        About an hour ago   Up 34 minutes (healthy)   5432/tcp
-task05-server-1   docker.gitea.com/gitea:1.27.3   "/usr/bin/entrypoint…"   server    16 seconds ago      Up 14 seconds (healthy)   22/tcp, 3000/tcp
+NAME              IMAGE                           COMMAND                  SERVICE   CREATED             STATUS                        PORTS
+task05-caddy-1    caddy:2.11.4                    "caddy run --config …"   caddy     14 minutes ago      Up About a minute             80/tcp, 443/tcp, 2019/tcp, 443/udp
+task05-db-1       docker.io/library/postgres:14   "docker-entrypoint.s…"   db        About an hour ago   Up About a minute (healthy)   5432/tcp
+task05-server-1   docker.gitea.com/gitea:1.27.3   "/usr/bin/entrypoint…"   server    14 minutes ago      Up About a minute (healthy)   22/tcp, 3000/tcp
   OK    запущено 3 из 3
 
 [2/9] HTTPS и редирект
@@ -24,7 +24,7 @@ task05-server-1   docker.gitea.com/gitea:1.27.3   "/usr/bin/entrypoint…"   ser
   OK    SHA-256 check.txt совпадает: 7e7733ff0982d931645c43e95712b0ae5e0eae27993a1815913d23fa42fbef29
 
 [6/9] Новый push с отдельным файлом
-  OK    push выполнен: push-test-20261006-011817.txt
+  OK    push выполнен: push-test-20261006-013401.txt
 
 [7/9] Эталонная конфигурация не менялась
   OK    docker-compose.yml и Caddyfile совпадают с эталоном
