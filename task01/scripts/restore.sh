@@ -106,7 +106,8 @@ load_env "$PROJECT_DIR/configs" POSTGRES_USER POSTGRES_DB POSTGRES_PASSWORD DOMA
 echo "[5/7] Поднимаем только PostgreSQL и восстанавливаем дамп"
 cd "$PROJECT_DIR/configs"
 docker compose up -d db
-wait_until 120 docker compose exec -T db pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+# -h 127.0.0.1: пока идёт инициализация, временный сервер слушает только сокет, и готовность по TCP означает, что запущен окончательный
+wait_until 120 docker compose exec -T db pg_isready -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
     || die "PostgreSQL не поднялся (docker compose logs db)"
 docker compose exec -T db pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --no-owner < "$BACKUP_DATA/gitea_db.dump"
 

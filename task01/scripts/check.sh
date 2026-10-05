@@ -18,7 +18,10 @@ source "$(dirname "${BASH_SOURCE[0]}")/../../common/gitea.sh"
 case "$SECRET_MODE" in input|files) ;; *) die "режим '$SECRET_MODE' недопустим (ожидается input или files)" ;; esac
 load_env "$CONFIGS_DIR" DOMAIN
 USERNAME="${CHECK_USER:-review-user}"
+# у восстановленной копии своих секретов нет: берём secrets/ и evidence/ проекта, из которого запущен скрипт
+SOURCE_PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CREDENTIALS_FILE="${CREDENTIALS_FILE:-$PROJECT_DIR/secrets/credentials.txt}"
+[ -f "$CREDENTIALS_FILE" ] || CREDENTIALS_FILE="$SOURCE_PROJECT/secrets/credentials.txt"
 
 echo "Проверка: $(stamp)   проект: ${COMPOSE_PROJECT_NAME:-?}   домен: $DOMAIN"
 
@@ -85,6 +88,7 @@ RESP="$(gitea_api GET /user)"
 if [ "${RESP##*$'\n'}" = "200" ]; then ok "вход выполнен: $USERNAME"; else fail "вход не удался (HTTP ${RESP##*$'\n'})"; fi
 
 EXPECTED="${EXPECTED_HASH:-$(env_get "$PROJECT_DIR/evidence/baseline.txt" COMMIT_HASH)}"
+[ -n "$EXPECTED" ] || EXPECTED="$(env_get "$SOURCE_PROJECT/evidence/baseline.txt" COMMIT_HASH)"
 mk_tmp_dir
 if git clone -q "https://${DOMAIN}/review-user/demo.git" "$TMP_RESULT/demo" 2>/dev/null; then
     ok "clone выполнен"
