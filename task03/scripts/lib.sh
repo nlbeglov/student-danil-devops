@@ -44,5 +44,6 @@ restic_env() {
 
 # Ждёт готовности PostgreSQL в проекте, из каталога configs которого вызвана
 wait_db() {
-    wait_until 120 docker compose exec -T db pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+    # -h 127.0.0.1: во время инициализации временный сервер слушает только сокет, по TCP отвечает уже окончательный
+    wait_until 120 docker compose exec -T db pg_isready -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 }

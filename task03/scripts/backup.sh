@@ -27,7 +27,7 @@ DB_READONLY=0
 cleanup() {
     local rc=$?
     if [ "$DB_READONLY" -eq 1 ]; then
-        (cd "$CONFIGS_DIR" && docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+        (cd "$CONFIGS_DIR" && docker compose exec -T -e PGOPTIONS="-c default_transaction_read_only=off" db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
             -c "ALTER DATABASE \"$POSTGRES_DB\" RESET default_transaction_read_only;" >/dev/null 2>&1) || true
     fi
     rm -rf "$TMP_DIR"
@@ -48,9 +48,10 @@ if ! OUTPUT="$(restic snapshots --tag task03 2>&1)"; then
 fi
 
 log "[2/6] Блокируем запись в базу данных на время копирования"
+# PGOPTIONS=...=off нужен для снятия запрета: новое подключение иначе read-only и ALTER DATABASE выполнить нельзя
 # новые подключения к БД становятся read-only: тестовые записи остановлены, чтение и pg_dump работают
 cd "$CONFIGS_DIR"
-docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+docker compose exec -T -e PGOPTIONS="-c default_transaction_read_only=off" db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
     -c "ALTER DATABASE \"$POSTGRES_DB\" SET default_transaction_read_only = on;" >/dev/null
 DB_READONLY=1
 
@@ -70,12 +71,13 @@ restic backup \
     --tag task03 --host task03
 
 log "[5/6] Возвращаем запись в базу данных"
-docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+docker compose exec -T -e PGOPTIONS="-c default_transaction_read_only=off" db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
     -c "ALTER DATABASE \"$POSTGRES_DB\" RESET default_transaction_read_only;" >/dev/null
 DB_READONLY=0
 
 log "[6/6] Политика хранения: оставляем 3 последних снимка"
-restic forget --keep-last 3 --tag task03 --host task03 --prune
+# --group-by host,tags: иначе снимки с разным набором путей (например, после изменения состава копии) считались бы разными группами
+restic forget --keep-last 3 --tag task03 --host task03 --group-by host,tags --prune
 
 log "Снимки в репозитории:"
 restic snapshots --tag task03 | tee -a "$BACKUP_LOG"
