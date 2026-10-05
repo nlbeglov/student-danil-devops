@@ -1,5 +1,0 @@
-{$DOMAIN} {
-    # file_server — встроенная в Caddy директива статической раздачи,
-    root * /srv/files
-    file_server
-}

@@ -65,7 +65,7 @@ jobs:
 
       - name: Verify rollback
         env:
-          APP_DOMAIN: test0.politblocks.com
+          APP_DOMAIN: a2.fdghyt.com
           EXPECTED_VERSION: ${{ github.event.inputs.app_version }}
         run: |
           # ждём запуска сервиса после перезапуска (до 2 минут)

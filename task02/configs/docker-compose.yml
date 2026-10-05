@@ -1,3 +1,4 @@
+# HTTPS и порты 80/443 обслуживает общий Caddy (common/caddy), он видит app через внешнюю сеть edge.
 services:
   app:
     # образ берётся из GHCR по digest (ghcr.io/owner/repo@sha256:...), на сервере не собирается
@@ -6,29 +7,11 @@ services:
     environment:
       - APP_VERSION=${APP_VERSION}
     networks:
-      - task02
-
-  caddy:
-    image: caddy:2.11.4
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      - DOMAIN=${DOMAIN}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - task02
-    depends_on:
-      - app
+      edge:
+        aliases:
+          - task02-app
 
 networks:
-  task02:
-    external: false
-
-volumes:
-  caddy_data:
-  caddy_config:
+  edge:
+    external: true
+    name: edge

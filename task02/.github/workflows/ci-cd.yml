@@ -125,7 +125,7 @@ jobs:
         env:
           # домен зафиксирован (тот же, что в Caddyfile) - вынесен
           # в переменную только для читаемости, не для гибкости
-          APP_DOMAIN: test0.politblocks.com
+          APP_DOMAIN: a2.fdghyt.com
           # ожидаемая версия = commit, из которого собран развёрнутый образ
           EXPECTED_VERSION: ${{ github.sha }}
         run: |

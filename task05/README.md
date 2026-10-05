@@ -4,15 +4,16 @@ Gitea · PostgreSQL · Caddy · Docker Compose. Рабочий стенд с д�
 
 ## Схема сервисов
 
-Один VPS: Senko Digital (Хельсинки, Финляндия), 2 vCPU / 4 GB RAM / disk: 60 GB. Compose-проект `task05`, домен `git.politblocks.com`.
+Один VPS: Senko Digital (Хельсинки, Финляндия), 2 vCPU / 4 GB RAM / disk: 60 GB. Compose-проект `task05`, домен `a4.fdghyt.com`; HTTPS обслуживает общий Caddy (`common/caddy`).
 
 ```
-Интернет ─► caddy :80/:443 ──(внутренняя сеть Compose)──► server (Gitea) :3000 ──► db (PostgreSQL) :5432
+Интернет ─► общий Caddy :80/:443 ──(сеть edge)──► caddy задания :80 ──► server (Gitea) :3000 ──► db (PostgreSQL) :5432
 ```
 
 | Сервис | Образ | Назначение |
 |---|---|---|
-| caddy | `caddy:2.11.4` | reverse proxy, HTTPS, редирект с HTTP, проксирует на `server:3000` |
+| caddy | `caddy:2.11.4` | собственный Caddy задания: по HTTP внутри сети, проксирует на `server:3000` (его upstream ломает сбой `proxy`); порты наружу не публикует |
+| общий Caddy | `caddy:2.11.4` | `common/caddy`: HTTPS и редирект для `a4.fdghyt.com`, проксирует на `task05-caddy:80` |
 | server | `docker.gitea.com/gitea:1.27.3` | Gitea; регистрация закрыта (`DISABLE_REGISTRATION=true`) |
 | db | `postgres:14` | база Gitea, только во внутренней сети Compose |
 
@@ -36,16 +37,16 @@ task05/
 | 3000 | Gitea (внутри контейнера) | только внутренняя сеть Compose |
 | 5432 | PostgreSQL | только внутренняя сеть Compose |
 
-Порты 3000 и 5432 наружу не публикуются. Проверка с внешней сети: `curl -v --max-time 5 http://git.politblocks.com:3000/` завершается таймаутом без ответа (одного `nc -zv` недостаточно: сеть может принять рукопожатие на любой порт).
+Порты 3000 и 5432 наружу не публикуются. Проверка с внешней сети: `curl -v --max-time 5 http://a4.fdghyt.com:3000/` завершается таймаутом без ответа (одного `nc -zv` недостаточно: сеть может принять рукопожатие на любой порт).
 
 ## Команды запуска и проверки
 
-Репозиторий склонирован на сервер в `/opt/devops` (корневой [README](../README.md)), Docker установлен (`sudo ../common/prepare-vps.sh`), A-запись домена указывает на VPS. Если на 80/443 работает стенд другого задания, сначала остановите его (`cd ../taskNN/configs && docker compose stop`).
+Репозиторий склонирован на сервер в `/opt/devops` (корневой [README](../README.md)), Docker установлен (`sudo ../common/prepare-vps.sh`), Docker установлен. Общий Caddy (`../common/caddy`) уже запущен (корневой [README](../README.md)), сеть `edge` создана, A-запись `a4.fdghyt.com` указывает на VPS.
 
 Первый запуск:
 ```bash
 cd /opt/devops/task05/configs
-cp .env.example .env && nano .env        # DOMAIN
+cp .env.example .env && nano .env        # DOMAIN=a4.fdghyt.com
 ../scripts/setup-secrets.sh              # пароли → secrets/credentials.txt, POSTGRES_PASSWORD → .env (до первого запуска стека)
 ../scripts/deploy.sh                     # поднять стек
 ../scripts/prepare-demo.sh               # review-admin, review-user, закрытый репозиторий demo, 2 коммита, эталон
@@ -79,7 +80,7 @@ cp .env.example .env && nano .env        # DOMAIN
 | Том данных Gitea только для чтения | `fault.sh readonly` | запись Gitea на диск | 502, в логах `Read-only file system` | [incident-3-readonly.md](evidence/incident-3-readonly.md) |
 
 ## Зависимости от common
-Скрипты самостоятельны (общие функции в `scripts/lib.sh`); подготовку VPS выполняет `../common/prepare-vps.sh`. Домен `git.politblocks.com` тот же, что у задания 01, поэтому стенды включаются по очереди (порты 80/443 занимает Caddy включённого стенда).
+Скрипты самостоятельны (общие функции в `scripts/lib.sh`); подготовку VPS выполняет `../common/prepare-vps.sh`. Порты 80/443 занимает только общий Caddy, поэтому задания работают одновременно (у задания 01 домен `a1.fdghyt.com`, у задания 05 — `a4.fdghyt.com`).
 
 ## Ручные действия
 - DNS: A-запись домена на IP VPS.

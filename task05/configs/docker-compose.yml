@@ -41,23 +41,21 @@ services:
       timeout: 3s
       retries: 10
   caddy:
+    # Собственный Caddy задания работает по HTTP внутри сети: сбой proxy ломает его upstream.
+    # HTTPS, порты 80/443 и сертификаты обслуживает общий Caddy (common/caddy), он ходит сюда через сеть edge.
     image: caddy:2.11.4
     restart: unless-stopped
-    dns:
-      - 1.1.1.1
-      - 8.8.8.8
     depends_on:
       - server
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      - DOMAIN=${DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
+    networks:
+      default:
+      edge:
+        aliases:
+          - task05-caddy
 
-volumes:
-  caddy_data:
-  caddy_config:
+networks:
+  edge:
+    external: true
+    name: edge

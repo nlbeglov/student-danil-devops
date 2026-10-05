@@ -1,0 +1,39 @@
+# Общий Caddy: по одному блоку на домен. Сертификаты Let's Encrypt выпускаются автоматически,
+# HTTP перенаправляется на HTTPS. Имена после reverse_proxy — alias сервисов в сети edge.
+# Если сервис задания не запущен, его домен отвечает 502, остальные работают.
+
+# Задание 01: Gitea
+{$DOMAIN_TASK01} {
+	reverse_proxy task01-gitea:3000
+}
+
+# Задание 01: восстановленная копия Gitea (отдельный адрес, проект task01-restore)
+{$DOMAIN_TASK01_RESTORE} {
+	reverse_proxy task01-restore-gitea:3000
+}
+
+# Задание 02: Python-сервис
+{$DOMAIN_TASK02} {
+	reverse_proxy task02-app:8000
+}
+
+# Задание 03: тестовые файлы
+{$DOMAIN_TASK03} {
+	root * /srv/task03
+	file_server
+}
+
+# Задание 04 (VPS мониторинга): Uptime Kuma и ntfy
+{$DOMAIN_TASK04_KUMA} {
+	reverse_proxy task04-kuma:3001
+}
+
+{$DOMAIN_TASK04_NTFY} {
+	reverse_proxy task04-ntfy:80
+}
+
+# Задание 05: Gitea за собственным Caddy задания (по HTTP; HTTPS здесь терминируется общим Caddy).
+# Собственный Caddy нужен, потому что сбой proxy ломает именно upstream этого Caddy.
+{$DOMAIN_TASK05} {
+	reverse_proxy task05-caddy:80
+}

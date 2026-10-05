@@ -7,7 +7,9 @@
 #       input — пароль архива и значения .env вводятся с клавиатуры
 #       files — пароль берётся из credentials.txt, готовый .env — из файла
 #               (по умолчанию secrets/credentials.txt и configs/.env этого проекта; иначе CREDENTIALS_FILE=... ENV_FILE=...; ASSUME_YES=1 — без вопроса подтверждения)
-# Исходный проект должен быть остановлен (порты 80/443 свободны): cd configs && docker compose stop
+# По заданию исходный проект на время проверки останавливают (cd configs && docker compose stop).
+# Восстановленная копия работает без своего Caddy: общий Caddy (common/caddy) отдаёт её на отдельном адресе
+# (блок DOMAIN_TASK01_RESTORE, alias <имя проекта>-gitea). Адрес копии: RESTORE_DOMAIN=danil1.fdghyt.com
 set -euo pipefail
 
 PROJECT_NAME="${1:?Использование: restore.sh <имя проекта> <новый каталог> <архив.tar.gz.gpg> <input|files>}"
@@ -36,7 +38,7 @@ echo "  Входной архив:     $INPUT_ARCHIVE"
 echo "  Передача секретов: $SECRET_MODE"
 echo ""
 if [ "${ASSUME_YES:-}" != "1" ]; then
-    read -rp "Исходный проект остановлен (порты 80/443 свободны)? Данные верны? [y/N] " CONFIRM
+    read -rp "Исходный проект остановлен? Данные верны? [y/N] " CONFIRM
     [ "$CONFIRM" = "y" ] || { echo "Отменено."; exit 1; }
 fi
 
@@ -69,7 +71,7 @@ BACKUP_DATA="$TEMP_DIR/backup-tmp"
 
 echo "[3/7] Собираем новый проект: configs/ и новые каталоги данных"
 mkdir -p "$PROJECT_DIR/configs" "$PROJECT_DIR/data/gitea" "$PROJECT_DIR/data/postgres"
-cp "$BACKUP_DATA/docker-compose.yml" "$BACKUP_DATA/Caddyfile" "$BACKUP_DATA/.env.example" "$PROJECT_DIR/configs/"
+cp "$BACKUP_DATA/docker-compose.yml" "$BACKUP_DATA/.env.example" "$PROJECT_DIR/configs/"
 ENV_NEW="$PROJECT_DIR/configs/.env"
 
 echo "[4/7] Настройки .env"
@@ -95,6 +97,9 @@ else
 fi
 # имя проекта фиксируется в .env: тома и контейнеры получают новые имена
 env_set "$ENV_NEW" COMPOSE_PROJECT_NAME "$PROJECT_NAME"
+# у копии свой alias в сети edge: по нему общий Caddy отдаёт её на отдельном домене
+env_set "$ENV_NEW" GITEA_ALIAS "${PROJECT_NAME}-gitea"
+[ -z "${RESTORE_DOMAIN:-}" ] || env_set "$ENV_NEW" DOMAIN "$RESTORE_DOMAIN"
 chmod 600 "$ENV_NEW"
 load_env "$PROJECT_DIR/configs" POSTGRES_USER POSTGRES_DB POSTGRES_PASSWORD DOMAIN
 
@@ -108,11 +113,11 @@ docker compose exec -T db pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --cle
 echo "[6/7] Распаковываем файлы Gitea в новый каталог данных"
 tar -xzf "$BACKUP_DATA/gitea-data.tar.gz" -C "$PROJECT_DIR/data"
 
-echo "[7/7] Запускаем Gitea и Caddy"
-docker compose up -d server caddy
+echo "[7/7] Запускаем Gitea (HTTPS обслуживает общий Caddy)"
+docker compose up -d server
 docker compose ps
 
 echo ""
 echo "Восстановление завершено: проект $PROJECT_NAME, каталог $PROJECT_DIR, время $(( SECONDS - START )) с"
 echo "Проверка: ./scripts/check.sh $PROJECT_DIR files"
-echo "Доступ: https://${DOMAIN} (или SSH-туннель на порт 3000 контейнера server)"
+echo "Доступ: https://${DOMAIN}; в common/caddy/.env DOMAIN_TASK01_RESTORE должен совпадать с этим доменом, alias копии: ${PROJECT_NAME}-gitea"

@@ -10,7 +10,7 @@
 #   SSH_HOST         - адрес VPS
 #   SSH_USER         - пользователь для подключения
 #   SSH_PRIVATE_KEY  - содержимое приватного ключа (многострочная переменная)
-#   APP_DOMAIN       - домен сервиса (по умолчанию test0.politblocks.com)
+#   APP_DOMAIN       - домен сервиса (по умолчанию a2.fdghyt.com)
 #   SSH_KNOWN_HOSTS  - (необязательно) строка known_hosts для VPS; если не задана,
 #                      отпечаток сервера берётся через ssh-keyscan
 
@@ -28,7 +28,7 @@ set -euo pipefail
     || { echo "IMAGE_REF должен иметь вид ghcr.io/owner/repo@sha256:<64 hex>, получено: $IMAGE_REF" >&2; exit 1; }
 [[ "$APP_VERSION" =~ ^[A-Za-z0-9._-]+$ ]] \
     || { echo "APP_VERSION содержит недопустимые символы" >&2; exit 1; }
-APP_DOMAIN="${APP_DOMAIN:-test0.politblocks.com}"
+APP_DOMAIN="${APP_DOMAIN:-a2.fdghyt.com}"
 [[ "$APP_DOMAIN" =~ ^[A-Za-z0-9.-]+$ ]] \
     || { echo "APP_DOMAIN содержит недопустимые символы" >&2; exit 1; }
 
@@ -62,13 +62,10 @@ run_remote() {
 echo "[3/5] Создаём папку проекта на VPS (если её ещё нет): на сервере та же раскладка configs/, что и в репозитории"
 run_remote "mkdir -p '$PROJECT_DIR/configs'"
 
-echo "[4/5] Копируем свежие конфиги (docker-compose.yml, Caddyfile)"
+echo "[4/5] Копируем свежий docker-compose.yml (HTTPS обслуживает общий Caddy сервера)"
 scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=yes \
     configs/docker-compose.yml \
     "${SSH_USER}@${SSH_HOST}:${PROJECT_DIR}/configs/docker-compose.yml"
-scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=yes \
-    configs/Caddyfile \
-    "${SSH_USER}@${SSH_HOST}:${PROJECT_DIR}/configs/Caddyfile"
 
 echo "[5/5] Обновляем .env на сервере и перезапускаем сервис"
 # Аргументы передаются в удалённый скрипт через printf %q (экранирование для удалённой оболочки),

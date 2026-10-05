@@ -1,9 +1,16 @@
+# HTTPS и порты 80/443 обслуживает общий Caddy (common/caddy): он проксирует Kuma и ntfy через внешнюю сеть edge.
+# Kuma отправляет уведомления в ntfy по внутренней сети Compose.
 services:
   uptime-kuma:
     image: louislam/uptime-kuma:1.23.16
     restart: unless-stopped
     volumes:
       - ../data/kuma:/app/data         # kuma.db: мониторы, уведомления, пользователь
+    networks:
+      default:
+      edge:
+        aliases:
+          - task04-kuma
 
   ntfy:
     image: binwiederhier/ntfy:v2.11.0
@@ -31,24 +38,13 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+    networks:
+      default:
+      edge:
+        aliases:
+          - task04-ntfy
 
-  caddy:
-    image: caddy:2.11.4
-    restart: unless-stopped
-    depends_on:
-      - uptime-kuma
-      - ntfy
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      - KUMA_DOMAIN=${KUMA_DOMAIN}
-      - NTFY_DOMAIN=${NTFY_DOMAIN}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-
-volumes:
-  caddy_data:
-  caddy_config:
+networks:
+  edge:
+    external: true
+    name: edge

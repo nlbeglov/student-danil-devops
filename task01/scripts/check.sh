@@ -26,7 +26,7 @@ echo ""
 echo "[1/6] Контейнеры"
 (cd "$CONFIGS_DIR" && docker compose ps)
 RUNNING="$(cd "$CONFIGS_DIR" && docker compose ps --status running -q | wc -l | tr -d ' ')"
-if [ "$RUNNING" -eq 3 ]; then ok "запущено 3 из 3 (server, db, caddy)"; else fail "запущено $RUNNING из 3"; fi
+if [ "$RUNNING" -eq 2 ]; then ok "запущено 2 из 2 (server, db); HTTPS обслуживает общий Caddy"; else fail "запущено $RUNNING из 2"; fi
 
 echo ""
 echo "[2/6] Автозапуск после загрузки VPS"
@@ -52,7 +52,7 @@ for D in gitea postgres; do
 done
 
 echo ""
-echo "[4/6] HTTPS, редирект, закрытые порты, регистрация"
+echo "[4/6] HTTPS и редирект (общий Caddy), закрытые порты, регистрация"
 CODE="$(http_code "https://${DOMAIN}/")"
 [ "$CODE" = "200" ] && ok "https://${DOMAIN} -> 200" || fail "https://${DOMAIN} -> $CODE (ожидалось 200)"
 CODE="$(http_code "http://${DOMAIN}/")"

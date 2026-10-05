@@ -1,0 +1,35 @@
+# Общий Caddy: единственный контейнер, который занимает порты 80/443 на VPS.
+# Принимает все домены и проксирует их в сервисы заданий через внешнюю сеть edge.
+# Сеть создаётся один раз: docker network create edge
+services:
+  caddy:
+    image: caddy:2.11.4
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN_TASK01=${DOMAIN_TASK01}
+      - DOMAIN_TASK01_RESTORE=${DOMAIN_TASK01_RESTORE}
+      - DOMAIN_TASK02=${DOMAIN_TASK02}
+      - DOMAIN_TASK03=${DOMAIN_TASK03}
+      - DOMAIN_TASK04_KUMA=${DOMAIN_TASK04_KUMA}
+      - DOMAIN_TASK04_NTFY=${DOMAIN_TASK04_NTFY}
+      - DOMAIN_TASK05=${DOMAIN_TASK05}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # тестовые файлы задания 03 (создаёт task03/scripts/prepare-data.sh)
+      - ../../task03/data/files:/srv/task03:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - edge
+
+networks:
+  edge:
+    external: true
+    name: edge
+
+volumes:
+  caddy_data:
+  caddy_config:

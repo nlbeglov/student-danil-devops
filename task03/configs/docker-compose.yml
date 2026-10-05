@@ -1,3 +1,4 @@
+# HTTPS и выдачу файлов data/files обслуживает общий Caddy (common/caddy); здесь только PostgreSQL.
 services:
   db:
     image: postgres:14
@@ -16,23 +17,4 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-    # ports: НЕТ — PostgreSQL доступен только во внутренней сети Compose
-
-  caddy:
-    image: caddy:2.11.4
-    restart: unless-stopped
-    environment:
-      - DOMAIN=${DOMAIN}
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      # тестовые файлы a.txt, b.txt, c.txt (создаёт scripts/prepare-data.sh)
-      - ../data/files:/srv/files:ro
-      - caddy_data:/data
-      - caddy_config:/config
-
-volumes:
-  caddy_data:
-  caddy_config:
+    # ports: НЕТ — PostgreSQL доступен только внутри Compose

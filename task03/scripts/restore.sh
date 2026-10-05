@@ -2,6 +2,7 @@
 # Использование: ./scripts/restore.sh [каталог восстановленного проекта]   (по умолчанию <проект>/restore)
 # Восстанавливает БД и файлы из ВНЕШНЕГО restic-репозитория в ОТДЕЛЬНЫЙ проект Compose с новыми томами
 # (<каталог>/data/postgres, <каталог>/data/files); исходные тома не трогаются.
+# Восстановленный проект без своего Caddy: порты 80/443 принадлежат общему Caddy (common/caddy).
 # Откуда берётся доступ к репозиторию:
 #   - переменные RESTIC_REPOSITORY и RESTIC_PASSWORD из окружения (когда исходного проекта на VPS уже нет), либо
 #   - configs/.env и secrets/credentials.txt исходного проекта.
@@ -51,7 +52,7 @@ FILES_SRC="$(find "$TMP_RESTORE" -type d -path '*/data/files' | head -1)"
 
 echo "[5/8] Собираем новый проект $RESTORE_NAME в $RESTORE_DIR"
 mkdir -p "$RESTORE_DIR"/{configs,data/postgres,data/files,secrets,evidence}
-for F in docker-compose.yml Caddyfile 01-items.sql; do
+for F in docker-compose.yml 01-items.sql; do
     SRC="$(find "$TMP_RESTORE" -name "$F" -type f | head -1)"
     [ -n "$SRC" ] || die "в снимке нет $F"
     cp "$SRC" "$RESTORE_DIR/configs/$F"
@@ -70,8 +71,9 @@ wait_db || die "PostgreSQL не поднялся (docker compose logs db)"
 # --clean --if-exists: init-скрипт мог создать таблицу items на пустом томе, pg_restore пересоздаёт её из дампа
 docker compose exec -T db pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --no-owner < "$DUMP_FILE"
 
-echo "[7/8] Запускаем Caddy: файлы снова отдаются по HTTPS"
-docker compose up -d
+echo "[7/8] Проверяем БД и файлы восстановленного проекта (HTTPS-выдачей файлов занимается общий Caddy основного проекта)"
+docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -t -A -c "SELECT count(*) FROM items;"
+ls "$RESTORE_DIR/data/files"
 
 echo "[8/8] Убираем временные файлы восстановления"
 rm -rf "$TMP_RESTORE"

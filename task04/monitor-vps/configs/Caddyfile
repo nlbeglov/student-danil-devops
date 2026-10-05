@@ -1,8 +1,0 @@
-# WebSocket (нужен Uptime Kuma и веб-клиенту ntfy) Caddy проксирует автоматически.
-{$KUMA_DOMAIN} {
-	reverse_proxy uptime-kuma:3001
-}
-
-{$NTFY_DOMAIN} {
-	reverse_proxy ntfy:80
-}

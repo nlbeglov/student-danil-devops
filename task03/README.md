@@ -1,26 +1,26 @@
 # 03. Резервное копирование БД и файлов
 
-PostgreSQL · Caddy · pg_dump · restic. Учебная БД и каталог файлов, регулярное копирование во внешнее SFTP-хранилище, восстановление в отдельный проект при остановленном исходном.
+PostgreSQL · Caddy (общий) · pg_dump · restic. Учебная БД и каталог файлов, регулярное копирование во внешнее SFTP-хранилище, восстановление в отдельный проект при остановленном исходном.
 
 ## Схема сервисов
 
 Один VPS, Compose-проект `task03`; внешнее хранилище restic — отдельный сервер по SFTP.
 
 ```
-Интернет ─► caddy :80/:443 ──► data/files (a.txt, b.txt, c.txt)         db (PostgreSQL) :5432 — только сеть Compose
+Интернет ─► общий Caddy :80/:443 ──► data/files (a.txt, b.txt, c.txt)   db (PostgreSQL) :5432 — только сеть Compose
 backup.sh ─► pg_dump + файлы + настройки ─► restic ─► SFTP-хранилище вне VPS
 ```
 
 | Сервис | Образ | Назначение |
 |---|---|---|
 | db | `postgres:14` | БД `lab`, таблица `items` (100 строк), данные в `data/postgres` |
-| caddy | `caddy:2.11.4` | HTTPS, выдача файлов из `data/files` |
+| общий Caddy | `caddy:2.11.4` | HTTPS для `a3.fdghyt.com`, выдача файлов из `task03/data/files` (`common/caddy`) |
 | restic | пакет ОС | копии во внешнее хранилище (зашифрованный репозиторий) |
 
 Структура каталога:
 ```
 task03/
-	configs/   docker-compose.yml, Caddyfile, 01-items.sql, .env.example
+	configs/   docker-compose.yml (только PostgreSQL), 01-items.sql, .env.example
 	scripts/   setup-storage.sh, setup-secrets.sh, restic-init.sh, prepare-data.sh, manifest.sh, backup.sh,
 	           restore.sh, check.sh, install-timer.sh, lib.sh
 	systemd/   task03-backup.service, task03-backup.timer (шаблоны)
@@ -34,18 +34,18 @@ task03/
 | Порт | Назначение | Доступность |
 |---|---|---|
 | 22 | SSH | публично |
-| 80 | HTTP → редирект на HTTPS (Caddy) | публично |
-| 443 | HTTPS (Caddy, файлы) | публично |
+| 80 | HTTP → редирект на HTTPS (общий Caddy) | публично |
+| 443 | HTTPS (общий Caddy, файлы) | публично |
 | 5432 | PostgreSQL | только внутренняя сеть Compose |
 
 ## Команды запуска и проверки
 
-Репозиторий склонирован на сервер в `/opt/devops` (корневой [README](../README.md)), Docker и restic установлены (`sudo ../common/prepare-vps.sh`), A-запись домена указывает на VPS, есть SFTP-хранилище с SSH-доступом. Если на 80/443 работает стенд другого задания, сначала остановите его (`cd ../taskNN/configs && docker compose stop`).
+Репозиторий склонирован на сервер в `/opt/devops` (корневой [README](../README.md)), Docker и restic установлены (`sudo ../common/prepare-vps.sh`), есть SFTP-хранилище с SSH-доступом. Общий Caddy (`../common/caddy`) уже запущен (см. корневой [README](../README.md)), сеть `edge` создана, A-запись `a3.fdghyt.com` указывает на VPS.
 
 Первый запуск:
 ```bash
 cd /opt/devops/task03/configs
-cp .env.example .env && nano .env        # DOMAIN, RESTIC_REPOSITORY=sftp:user@host:/path
+cp .env.example .env && nano .env        # DOMAIN=a3.fdghyt.com, RESTIC_REPOSITORY=sftp:user@host:/path
 ../scripts/setup-storage.sh user@host    # один раз: SSH-ключ и доступ к хранилищу без пароля
 ../scripts/setup-secrets.sh              # пароль PostgreSQL → .env, ключ restic → secrets/credentials.txt
 docker compose up -d
@@ -84,7 +84,7 @@ docker compose up -d                     # основной стенд снов�
 | 6 | сравнение manifest, `id=101`, ошибка доступа | [Требование 6](<evidence/Требование 6.md>) |
 
 ## Зависимости от common
-Скрипты подключают `../common/lib.sh` (работа с `.env`, пароли, проверки); пакеты `restic`, `python3` и ufw ставит `../common/prepare-vps.sh`. Caddy задания обслуживает только свой домен; порты 80/443 делят все задания одного VPS, поэтому стенды включаются по очереди.
+Скрипты подключают `../common/lib.sh` (работа с `.env`, пароли, проверки); пакеты `restic`, `python3` и ufw ставит `../common/prepare-vps.sh`. HTTPS и выдачу файлов обслуживает общий Caddy из `../common/caddy` (он монтирует `task03/data/files`); проект Compose порты 80/443 не занимает, восстановленный проект тоже работает без Caddy.
 
 ## Ручные действия
 - DNS: A-запись домена на IP VPS.

@@ -49,7 +49,7 @@ tar -czf "$BACKUP_DIR/gitea-data.tar.gz" -C "$PROJECT_DIR/data" gitea
 
 echo "[4/7] Копируем конфигурацию (пароли заменяются на CHANGE_ME)"
 sed -E 's/^(POSTGRES_PASSWORD)=.*/\1=CHANGE_ME/' .env > "$BACKUP_DIR/.env.example"
-cp docker-compose.yml Caddyfile "$BACKUP_DIR/"
+cp docker-compose.yml "$BACKUP_DIR/"
 
 echo "[5/7] Возобновляем запись в Gitea"
 docker compose start server

@@ -7,22 +7,22 @@ Uptime Kuma · ntfy · Nginx · Caddy. Наблюдение за HTTP-серви
 1. AEZA (Хельсинки, Финляндия) 1 vCPU / 4GB RAM / disk: 10GB
 Наименования: VPS-A, первый VPS, **target vps**
 
-Домен:
-- test3.politblocks.com  (цель мониторинга)
+IP 130.17.27.121. Домен:
+- danil2.fdghyt.com  (цель мониторинга)
 
 Сервисы:
-- caddy :80/:443
+- caddy :80/:443 (свой, в `target-vps`)
 - nginx :80 /health (200 | 503)
 
 2. Senko Digital (Хельсинки, Финляндия) 2 vCPU / 4GB RAM / disk: 60GB
 Наименования: VPS-B, второй VPS, **monitor vps**
 
-Домены:
-- test0.politblocks.com (Kuma)
-- test1.politblocks.com  (ntfy)
+Это основной VPS (144.31.119.139), на нём же работают задания 01, 02, 03 и 05. Домены:
+- a5.fdghyt.com (Kuma)
+- a6.fdghyt.com  (ntfy)
 
 Сервисы:
-- caddy :80/:443
+- общий Caddy :80/:443 (`common/caddy`) проксирует домены на Kuma и ntfy через сеть `edge`
 - uptime-kuma :3001 (внутр. сеть)
 - ntfy :80
 Kuma отправляет уведомления в ntfy по внутренней сети Compose
@@ -36,7 +36,7 @@ task04/
 		configs/   docker-compose.yml, Caddyfile, nginx/, .env.example
 		scripts/   deploy-target.sh, set-health.sh
 	monitor-vps/
-		configs/   docker-compose.yml, Caddyfile, .env.example
+		configs/   docker-compose.yml, .env.example
 		scripts/   deploy-monitor.sh, setup-secrets.sh
 	evidence/
 ```
@@ -46,29 +46,29 @@ task04/
 | Порт | VPS | Назначение | Доступность |
 |---|---|---|---|
 | 22 | оба | SSH | публично |
-| 80 | оба | HTTP → редирект на HTTPS (Caddy) | публично |
-| 443 | оба | HTTPS (Caddy) | публично |
+| 80 | оба | HTTP → редирект на HTTPS (Caddy: на VPS-A свой, на VPS-B общий) | публично |
+| 443 | оба | HTTPS (Caddy: на VPS-A свой, на VPS-B общий) | публично |
 | 80 (nginx) | target-vps | nginx `/health` | только внутренняя сеть Compose |
 | 3001 | monitor-vps | Uptime Kuma | только внутренняя сеть Compose |
 | 80 (ntfy) | monitor-vps | ntfy | только внутренняя сеть Compose |
 
 ## Команды запуска и проверки
 
-Репозиторий склонирован на оба сервера в `/opt/devops` (корневой [README](../README.md)), на каждом установлен Docker (`sudo ../common/prepare-vps.sh`), A-записи доменов указывают на нужные VPS.
+Репозиторий склонирован на оба сервера в `/opt/devops` (корневой [README](../README.md)), на каждом установлен Docker (`sudo ../common/prepare-vps.sh`), A-записи доменов указывают на нужные VPS. На VPS-B до `deploy-monitor.sh` запущен общий Caddy (`common/caddy`, корневой README) и создана сеть `edge`.
 
 ### target-vps (VPS-A)
 ```bash
 cd /opt/devops/task04/target-vps/configs
-cp .env.example .env && nano .env        # TARGET_DOMAIN
+cp .env.example .env && nano .env        # TARGET_DOMAIN=danil2.fdghyt.com
 ../scripts/deploy-target.sh
-curl -i https://test3.politblocks.com/health
+curl -i https://danil2.fdghyt.com/health
 ../scripts/set-health.sh up|down         # переключение /health: 200 или 503
 ```
 
 ### monitor-vps (VPS-B)
 ```bash
 cd /opt/devops/task04/monitor-vps/configs
-cp .env.example .env && nano .env        # KUMA_DOMAIN, NTFY_DOMAIN
+cp .env.example .env && nano .env        # KUMA_DOMAIN=a5.fdghyt.com, NTFY_DOMAIN=a6.fdghyt.com
 ../scripts/deploy-monitor.sh
 ../scripts/setup-secrets.sh              # пароли, пользователи ntfy, monitor-vps/secrets/credentials.txt
 ```
@@ -96,7 +96,7 @@ cd /opt/devops/task04
 `scripts/check.sh` подключает `../common/lib.sh`; подготовку VPS (Docker, ufw) выполняет `../common/prepare-vps.sh`. Задание использует два отдельных VPS, выделенных под него, поэтому с другими стендами порты не пересекаются.
 
 ## Ручные действия
-- DNS: создать одну A-запись (`test3`) на IP VPS-A и две A-записи (`test0`, `test1`) на IP VPS-B.
+- DNS: A-запись `danil2` на IP VPS-A (130.17.27.121) и две A-записи `a5`, `a6` на IP VPS-B (144.31.119.139).
 - Файрвол: снаружи только 22 (SSH), 80, 443 (делает `sudo ../common/prepare-vps.sh`).
 - Запуск `deploy-target.sh` на VPS-A, `deploy-monitor.sh` и `setup-secrets.sh` на VPS-B. Пароли генерируются и сохраняются в `monitor-vps/secrets/credentials.txt` (вне git), значения передаются проверяющему отдельно.
 - Создание администратора Uptime Kuma в веб-интерфейсе (пароль `KUMA_ADMIN_PASSWORD` из `credentials.txt`).
@@ -127,8 +127,8 @@ cd /opt/devops/task04
 |---|---|---|
 | Monitor Type | HTTP(s) | TCP Port |
 | Friendly Name | target-http-health | target-tcp-443 |
-| URL | https://test3.politblocks.com/health | - |
-| Hostname | - | test3.politblocks.com |
+| URL | https://danil2.fdghyt.com/health | - |
+| Hostname | - | danil2.fdghyt.com |
 | Port | - | 443 |
 | Heartbeat Interval | 30 | 30 |
 | Retries | 0 | 0 |

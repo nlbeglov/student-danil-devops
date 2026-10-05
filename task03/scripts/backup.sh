@@ -66,7 +66,7 @@ sed -E 's/^(POSTGRES_PASSWORD)=.*/\1=CHANGE_ME/' "$CONFIGS_DIR/.env" > "$TMP_DIR
 restic backup \
     "$TMP_DIR/db.dump" "$TMP_DIR/env.sanitized" \
     "$PROJECT_DIR/data/files" \
-    "$CONFIGS_DIR/docker-compose.yml" "$CONFIGS_DIR/Caddyfile" "$CONFIGS_DIR/01-items.sql" \
+    "$CONFIGS_DIR/docker-compose.yml" "$CONFIGS_DIR/01-items.sql" \
     --tag task03 --host task03
 
 log "[5/6] Возвращаем запись в базу данных"

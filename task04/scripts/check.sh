@@ -14,9 +14,9 @@ ROLE="${1:-}"
 TARGET_DOMAIN="${TARGET_DOMAIN:-$(env_get "$SCRIPT_DIR/../target-vps/configs/.env" TARGET_DOMAIN)}"
 KUMA_DOMAIN="${KUMA_DOMAIN:-$(env_get "$SCRIPT_DIR/../monitor-vps/configs/.env" KUMA_DOMAIN)}"
 NTFY_DOMAIN="${NTFY_DOMAIN:-$(env_get "$SCRIPT_DIR/../monitor-vps/configs/.env" NTFY_DOMAIN)}"
-TARGET_DOMAIN="${TARGET_DOMAIN:-test3.politblocks.com}"
-KUMA_DOMAIN="${KUMA_DOMAIN:-test0.politblocks.com}"
-NTFY_DOMAIN="${NTFY_DOMAIN:-test1.politblocks.com}"
+TARGET_DOMAIN="${TARGET_DOMAIN:-danil2.fdghyt.com}"
+KUMA_DOMAIN="${KUMA_DOMAIN:-a5.fdghyt.com}"
+NTFY_DOMAIN="${NTFY_DOMAIN:-a6.fdghyt.com}"
 TOPIC="${NTFY_TOPIC:-monitor-alerts}"
 
 code() { curl -s -o /dev/null -w '%{http_code}' --max-time 8 "$@" || true; }

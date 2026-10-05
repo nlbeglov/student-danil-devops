@@ -1,6 +1,10 @@
+# HTTPS и порты 80/443 обслуживает общий Caddy (common/caddy), он видит Gitea через внешнюю сеть edge.
 networks:
   gitea:
     external: false
+  edge:
+    external: true
+    name: edge
 
 services:
   server:
@@ -20,7 +24,11 @@ services:
       - GITEA__DEFAULT__APP_NAME=PolitBlocks
     restart: always
     networks:
-      - gitea
+      gitea:
+      edge:
+        # имя, по которому общий Caddy находит Gitea (у восстановленной копии своё: см. restore.sh)
+        aliases:
+          - ${GITEA_ALIAS:-task01-gitea}
     volumes:
       - ../data/gitea:/data
       - /etc/timezone:/etc/timezone:ro
@@ -39,22 +47,3 @@ services:
       - gitea
     volumes:
       - ../data/postgres:/var/lib/postgresql/data
-
-  caddy:
-    image: caddy:2.11.4
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      - DOMAIN=${DOMAIN}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - gitea
-
-volumes:
-  caddy_data:
-  caddy_config:

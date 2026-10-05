@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Использование: ./scripts/check.sh [каталог восстановленного проекта]   (по умолчанию <проект>/restore)
-# Проверка после restore.sh:
+# Проверка после restore.sh (восстановленный проект: PostgreSQL и файлы, без своего Caddy):
 #   [1/5] внешний репозиторий: restic check, ровно 3 снимка после политики хранения
 #   [2/5] расписание: таймер systemd и последнее срабатывание
 #   [3/5] manifest до и после восстановления (число строк, SHA-256 выгрузки и файлов)
@@ -60,9 +60,7 @@ for PAIR in a.txt:alpha b.txt:beta c.txt:gamma; do
     if [ "$(cat "$RESTORE_DIR/data/files/$NAME" 2>/dev/null)" = "$WORD" ]; then ok "$NAME содержит $WORD"
     else fail "$NAME не содержит ожидаемого значения $WORD"; fi
 done
-RESTORED_DOMAIN="$(env_get "$RESTORE_DIR/configs/.env" DOMAIN)"
-if [ "$(curl -s --max-time 10 "https://${RESTORED_DOMAIN}/a.txt")" = "alpha" ]; then ok "https://${RESTORED_DOMAIN}/a.txt -> alpha"
-else warn "https://${RESTORED_DOMAIN}/a.txt не отдаёт alpha (DNS, порты 80/443, исходный стенд остановлен?)"; fi
+# у восстановленного проекта нет своего Caddy: файлы по HTTPS отдаёт общий Caddy из каталога data/files основного проекта
 RESULT="$(
     load_env "$RESTORE_DIR/configs" POSTGRES_USER POSTGRES_DB
     cd "$RESTORE_DIR/configs" || exit 1
