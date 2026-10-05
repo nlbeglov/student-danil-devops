@@ -22,7 +22,7 @@ services:
     networks:
       - gitea
     volumes:
-      - ./gitea:/data
+      - ../data/gitea:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     depends_on:
@@ -38,7 +38,7 @@ services:
     networks:
       - gitea
     volumes:
-      - ./postgres:/var/lib/postgresql/data
+      - ../data/postgres:/var/lib/postgresql/data
 
   caddy:
     image: caddy:2.11.4
@@ -46,6 +46,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
