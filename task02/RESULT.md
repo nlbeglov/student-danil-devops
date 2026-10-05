@@ -1,27 +1,27 @@
 ## 1. Общая информация
 - Номер задания: 02
-- Дата: 22.09.2026 – 23.09.2026
-- Затраченные часы: [указать]
+- Дата: 22.09.2026 – 06.10.2026
+- Затраченные часы: 16
 
 ## 2. Ссылки
 | Адрес | Назначение |
 |---|---|
-| https://test0.politblocks.com | HTTPS-адрес развёрнутого сервиса (Caddy → app): `/health`, `/version`, `/add` |
+| https://a2.fdghyt.com | HTTPS-адрес развёрнутого сервиса (общий Caddy → app): `/health`, `/version`, `/add` |
 | [github.com/nlbeglov/nerp-test-task02](https://github.com/nlbeglov/nerp-test-task02) | репозиторий |
 | [Actions](https://github.com/nlbeglov/nerp-test-task02/actions) | журналы CI/CD |
 | [Packages](https://github.com/nlbeglov/nerp-test-task02/pkgs/container/nerp-test-task02) | образы в GHCR |
 
 - Репозиторий: [github.com/nlbeglov/nerp-test-task02](https://github.com/nlbeglov/nerp-test-task02)
-- Финальный (задеплоенный) коммит: `83a3acd55071798f0c6dbe84d1a3697f86bd6ed5` («Fix flaky health check: retry loop instead of fixed sleep 5»)
-- Ошибочная ревизия: `f34b487a58471b433cdc8b0aeb1e22c1a22de6c3` («Broken release: off-by-one bug in addition»)
+- Финальный (задеплоенный) коммит: `9bbf43403d7ad70e096258e989cb951f75511d98` («Revert "Broken release: off-by-one bug in addition"»), digest `sha256:20c1dc13c5ed5ff22809b2aed480dbb927109d53d7cfe84965071d36aa3061c2`
+- Ошибочная ревизия: `023ae38d846099ff458b9145003f715b77e331a4` («Broken release: off-by-one bug in addition»), прогон [CI/CD #7](https://github.com/nlbeglov/nerp-test-task02/actions/runs/37384982475)
 
 ## 3. Сервисы и характеристики
 | Сервис | Образ | Версия/тег |
 |---|---|---|
 | app | ghcr.io/nlbeglov/nerp-test-task02 | по digest (таблица ниже) |
-| caddy | caddy | 2.11.4 |
+| Caddy (общий, `common/caddy`) | caddy | 2.11.4 |
 
-- VPS: Senko Digital (Хельсинки, Финляндия), общий с заданием 01: 2 vCPU / 4GB RAM / disk: 60GB
+- VPS: Senko Digital (Хельсинки, Финляндия), общий с заданием 01: 2 vCPU / 4GB RAM / disk: 60GB, 144.31.119.139
 
 ## 4. Статус требований
 | № | Требование | Статус | Подтверждение |
@@ -30,37 +30,36 @@
 | 2 | Автотесты, Dockerfile, Compose, HTTPS через Caddy, без БД | выполнено | [Требование 2](<evidence/Требование 2.md>) |
 | 3 | GitHub Actions: тесты → сборка → GHCR → доставка по digest, привязка к commit | выполнено | [Требование 3](<evidence/Требование 3.md>) |
 | 4 | Проверка `/health` и `/version`, digest предыдущего выпуска, `concurrency`, секреты в CI/CD | выполнено | [Требование 4](<evidence/Требование 4.md>) |
-| 5 | Версии A и B, затем ошибка в сложении: тест падает, на VPS остаётся рабочая версия | частично | [Требование 5](<evidence/Требование 5.md>) |
+| 5 | Версии A и B, затем ошибка в сложении: тест падает, на VPS остаётся рабочая версия | выполнено | [Требование 5](<evidence/Требование 5.md>) |
 | 6 | Ручной откат на готовый digest без пересборки, проверка `/version`, `/health`, сложения | выполнено | [Требование 6](<evidence/Требование 6.md>) |
 
 ## 5. Проверка за 5 минут
 Действия:
-1. `curl -s https://test0.politblocks.com/health`
-2. `curl -s https://test0.politblocks.com/version`
-3. `curl -s "https://test0.politblocks.com/add?a=2&b=3"`
-4. Открыть [Actions](https://github.com/nlbeglov/nerp-test-task02/actions): прогон коммита `f34b487` красный на шаге `test`.
-5. Открыть [Packages](https://github.com/nlbeglov/nerp-test-task02/pkgs/container/nerp-test-task02): опубликовано три версии образа, образа для `f34b487` нет.
-
-Автоматически на сервере: `cd /opt/devops/task02/configs && ../scripts/check.sh` (тесты, образ по digest, `/health`, `/version`, сложение, ответы 400, редирект).
+1. `curl -s https://a2.fdghyt.com/health`
+2. `curl -s https://a2.fdghyt.com/version`
+3. `curl -s "https://a2.fdghyt.com/add?a=2&b=3"`
+4. Открыть [Actions](https://github.com/nlbeglov/nerp-test-task02/actions): прогон [#7](https://github.com/nlbeglov/nerp-test-task02/actions/runs/37384982475) красный на шаге `Run tests`, jobs `build` и `deploy` пропущены.
+5. Автоматически на сервере: `cd /opt/devops/task02/configs && ../scripts/check.sh` (тесты, образ по digest, `/health`, `/version`, сложение, ответы 400, редирект).
+6. `cat /opt/devops/task02/configs/releases.log` — журнал выпусков: A, B, откат на A, revert; в нём нет доставки ошибочной ревизии.
 
 Ожидаемый результат:
-- `/health` → `{"status":"ok"}`, `/version` → `{"version":"83a3acd55071798f0c6dbe84d1a3697f86bd6ed5"}`, сложение → `{"result":5}`;
-- прогон с ошибкой в сложении завершается `Failure` на тестах, шаги `build` и `deploy` не выполняются;
-- в GHCR нет образа из сломанного коммита.
+- `/health` → `{"status":"ok"}`, `/version` → `{"version":"9bbf43403d7ad70e096258e989cb951f75511d98"}`, сложение → `{"result":5}`;
+- прогон с ошибкой в сложении завершается `Failure` на тестах, шаги `build` и `deploy` не выполняются, на VPS остаётся версия B;
+- откат запускается в Actions без сборки образа, `/version` после него равен коммиту A, digest совпадает с выпуском A.
 
 ### Версия — commit — digest
 | Версия (`/version`) | Коммит | Digest образа | Итог прогона CI/CD |
 |---|---|---|---|
-| `0f7757e…` («Release A») | [0f7757e](https://github.com/nlbeglov/nerp-test-task02/commit/0f7757e1d870a9c5695e6c9ccb77db98bd0db142) | `sha256:1215ec704ac16558e027d5d16e01554a6caa6de98797fec5104e684b143c3820` | тесты и сборка ✅, доставка ❌ ([run #1](https://github.com/nlbeglov/nerp-test-task02/actions/runs/35784102030), неверный путь на VPS) |
-| `443ffee…` («Fix deploy path») | [443ffee](https://github.com/nlbeglov/nerp-test-task02/commit/443ffee3b40fff4f8a10e8954d4114dfcf88b760) | `sha256:1178957ad493913539154a4031a00dd1cd7c9029113f1258b5d9202703459c5b` | тесты, сборка, доставка ✅, проверка ❌ ([run #2](https://github.com/nlbeglov/nerp-test-task02/actions/runs/35866968117), SSL-таймаут сразу после рестарта Caddy) |
-| `83a3acd…` («Fix flaky health check») | [83a3acd](https://github.com/nlbeglov/nerp-test-task02/commit/83a3acd55071798f0c6dbe84d1a3697f86bd6ed5) | `sha256:b764d0dcbe404558bb7330efe8455f4d6be613279592e374f449858d8aa82519` | полный успех ✅ ([run #3](https://github.com/nlbeglov/nerp-test-task02/actions/runs/35869160966)); работает на VPS |
-| `f34b487…` («Broken release») | [f34b487](https://github.com/nlbeglov/nerp-test-task02/commit/f34b487a58471b433cdc8b0aeb1e22c1a22de6c3) | образ не собирался | `test` упал (`{"result": 5} == {"result": 6}`), `build` и `deploy` пропущены ([run #4](https://github.com/nlbeglov/nerp-test-task02/actions/runs/35870161134)) |
+| `b9250cdadd9605b8d2eaadb86d815a8f119ce1ca` (A) | [b9250cd](https://github.com/nlbeglov/nerp-test-task02/commit/b9250cdadd9605b8d2eaadb86d815a8f119ce1ca) «Release A» | `sha256:73bf45da1f0f1b91f8de5e35fd52faa0b12ad32e991f62f9d9cee1df8ec48639` | тесты, сборка, доставка ✅ ([#5](https://github.com/nlbeglov/nerp-test-task02/actions/runs/37384308403)) |
+| `2edfb80179fe8f1a2fe0ac6fa3a158551025f9b2` (B) | [2edfb80](https://github.com/nlbeglov/nerp-test-task02/commit/2edfb80179fe8f1a2fe0ac6fa3a158551025f9b2) «Release B» | `sha256:32aa863fc9a0de0416896a3eb864d540809f6aab66e0e08428a38287b98e848a` | тесты, сборка, доставка ✅ ([#6](https://github.com/nlbeglov/nerp-test-task02/actions/runs/37384842975)) |
+| ошибочная ревизия | [023ae38](https://github.com/nlbeglov/nerp-test-task02/commit/023ae38d846099ff458b9145003f715b77e331a4) «Broken release» | образ не собирался | `test` упал, `build` и `deploy` пропущены ([#7](https://github.com/nlbeglov/nerp-test-task02/actions/runs/37384982475)); на VPS осталась версия B |
+| `b9250cdadd9605b8d2eaadb86d815a8f119ce1ca` (откат на A) | тот же образ A | `sha256:73bf45da1f0f1b91f8de5e35fd52faa0b12ad32e991f62f9d9cee1df8ec48639` | Rollback ✅ ([Rollback #3](https://github.com/nlbeglov/nerp-test-task02/actions/runs/37385256876)), без сборки; `/version` = A |
+| `9bbf43403d7ad70e096258e989cb951f75511d98` (revert) | [9bbf434](https://github.com/nlbeglov/nerp-test-task02/commit/9bbf43403d7ad70e096258e989cb951f75511d98) «Revert Broken release» | `sha256:20c1dc13c5ed5ff22809b2aed480dbb927109d53d7cfe84965071d36aa3061c2` | следующий обычный выпуск ✅ ([#8](https://github.com/nlbeglov/nerp-test-task02/actions/runs/37385324487)) |
 
-Откаты (workflow `Rollback`, без пересборки): [run #1](https://github.com/nlbeglov/nerp-test-task02/actions/runs/35870980191) — `Failure`; [run #2](https://github.com/nlbeglov/nerp-test-task02/actions/runs/35876611691) — `Success` (23.09, 17:46 GMT+3): время совпадает со стартом контейнера `task02-app-1` (`StartedAt: 2026-09-23T14:46:33Z`), `/version` отдаёт digest `83a3acd`.
+Порядок следующего обычного выпуска после отката описан в [Требование 6](<evidence/Требование 6.md>).
 
 ## Проблемы и ограничения
-- **Сценарий «версии A и B» выполнен частично (требование 5).** «Release A» (`0f7757e`) прошёл тесты и сборку, но не задеплоился из-за неверного пути на VPS; следующий коммит `443ffee` задеплоился, но проверка `/health` не прошла сразу после рестарта Caddy. Полный цикл test → build → deploy → verify завершился только на `83a3acd`, поэтому отдельной независимой версии B нет. Ключевое поведение подтверждено: ошибка в тесте не пропускает ревизию на VPS, рабочая версия остаётся.
-- **Параметры двух запусков Rollback не восстановлены:** введённые в форму `image_digest` и `app_version` не видны без авторизации. Вероятно, `Rollback #1` целился в digest `0f7757e` (никогда не разворачивался на этом VPS) и упал, а `Rollback #2` откатил на `83a3acd`. Механизм отката (готовый образ по digest, тот же `ci-deploy.sh`, без сборки) подтверждён.
-- Код в этом каталоге доработан после выпуска `83a3acd` (проверка версии и сложения после доставки, сохранение предыдущего digest, проверка входов отката, непривилегированный пользователь в образе, строгая проверка целых чисел). Эти изменения нужно отправить в репозиторий GitHub и подтвердить одним зелёным прогоном CI/CD; до этого описанные в таблице прогоны относятся к предыдущей версии workflow.
-- Структура приведена к общему виду: `compose`, `Dockerfile`, `Caddyfile`, `requirements.txt` и `.env.example` лежат в `configs/`; для CI содержимое `task02/` должно быть корнем репозитория на GitHub (см. README, «Ручные действия»).
+- Первый запуск deploy в прогоне #5 упал: на пересозданном сервере не было ключа CI (`Permission denied (publickey,password)`). Создан новый ключ для CI, публичная часть добавлена в `authorized_keys` на VPS, приватная записана в секрет `VPS_SSH_KEY`; после «Re-run failed jobs» deploy прошёл.
+- Введённые в форму Rollback значения `image_digest` и `app_version` не видны без авторизации; соответствие подтверждается журналом выпусков на VPS (`releases.log`: образ и версия A) и digest из прогона #5.
+- Стенд работает за общим Caddy: `compose`, `Dockerfile`, `requirements.txt` и `.env.example` лежат в `configs/`, домен `a2.fdghyt.com`, CI доставляет в `/opt/devops/task02/configs`; содержимое `task02/` является корнем репозитория GitHub.
 - В `evidence/` нет скриншотов: подтверждения даны выводом команд и ссылками на публичные страницы GitHub Actions и GHCR.

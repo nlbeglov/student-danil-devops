@@ -27,7 +27,7 @@ task02/
 	scripts/   ci-deploy.sh (доставка из CI), check.sh (проверка)
 	evidence/  подтверждения по требованиям
 ```
-На VPS при доставке из CI та же раскладка создаётся в `/opt/task02-deploy/configs/` (compose, `.env` с текущим выпуском, `.env.previous` — предыдущий выпуск, `releases.log`).
+На VPS при доставке из CI та же раскладка создаётся в `/opt/devops/task02/configs/` (compose, `.env` с текущим выпуском, `.env.previous` — предыдущий выпуск, `releases.log`).
 
 ## Порты
 
@@ -87,7 +87,7 @@ CI/CD (после настройки репозитория GitHub, см. «Ру
 `check.sh` подключает `../common/lib.sh`. CI/CD-скрипт `ci-deploy.sh` от `common/` не зависит: он работает в отдельном репозитории GitHub. HTTPS обслуживает общий Caddy из `../common/caddy`; проект Compose порты 80/443 не занимает.
 
 ## Ручные действия
-- Репозиторий GitHub: опубликовать содержимое `task02/` как корень отдельного репозитория (`git subtree split --prefix=task02 -b task02-only && git push <url репозитория> task02-only:main`).
+- Репозиторий GitHub (`nlbeglov/nerp-test-task02`): содержимое `task02/` публикуется как корень этого репозитория обычным коммитом поверх его истории: `git clone https://github.com/nlbeglov/nerp-test-task02.git sync && rsync -a --delete --exclude=.git --exclude=.venv task02/ sync/ && cd sync && git add -A && git commit -m "..." && git push`. Выпуски A, B, ошибочная ревизия и откат выполняются отдельными коммитами и запусками Rollback (порядок описан в RESULT.md).
 - Секреты репозитория `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` и (необязательно) `SSH_KNOWN_HOSTS`; отдельная пара ключей для CI (`ssh-keygen -t ed25519`, публичная часть в `authorized_keys` на VPS); создание среды `production`.
 - DNS: A-запись домена на IP VPS; запустить общий Caddy (`common/caddy`) и создать сеть `edge`.
 - Намеренная ошибка в сложении (`src/app.py`) и её откат выполняются локальными коммитами; запуск Rollback — кнопкой «Run workflow» с digest и версией из лога сборки.

@@ -9,7 +9,22 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CONFIGS_DIR="$PROJECT_DIR/configs"
 # shellcheck disable=SC1091
-source "$PROJECT_DIR/../common/lib.sh"
+if [ -f "$PROJECT_DIR/../common/lib.sh" ]; then
+    source "$PROJECT_DIR/../common/lib.sh"
+else
+    # task02 может лежать отдельным репозиторием GitHub без каталога common/: минимальный набор тех же функций
+    stamp() { date +%Y-%m-%dT%H:%M:%S%z; }
+    die() { echo "ОШИБКА: $*" >&2; exit 1; }
+    env_get() { [ -f "$1" ] || return 0; KEY="$2" awk -F= 'BEGIN{k=ENVIRON["KEY"]} $1==k{sub(/^[^=]*=/,""); print; exit}' "$1"; }
+    load_env() { local f="$1/.env" v; shift; [ -f "$f" ] || die "нет $f"; set -a; source "$f"; set +a
+        for v in "$@"; do [ -n "${!v:-}" ] && [[ "${!v}" != *CHANGE_ME* ]] || die "в $f не заполнена $v"; done; }
+    http_code() { curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$@" || true; }
+    CHECK_FAILED=0
+    ok()   { echo "  OK    $*"; }
+    warn() { echo "  WARN  $*"; }
+    fail() { echo "  FAIL  $*"; CHECK_FAILED=1; }
+    check_summary() { echo ""; if [ "$CHECK_FAILED" -eq 0 ]; then echo "ИТОГ: все проверки пройдены"; else echo "ИТОГ: есть провалы"; return 1; fi; }
+fi
 load_env "$CONFIGS_DIR" DOMAIN IMAGE_REF APP_VERSION
 BASE="https://${DOMAIN}"
 

@@ -34,7 +34,7 @@ APP_DOMAIN="${APP_DOMAIN:-a2.fdghyt.com}"
 
 # фиксированные настройки, специфичные именно для этого проекта
 PROJECT_NAME="task02"
-PROJECT_DIR="/opt/task02-deploy"
+PROJECT_DIR="/opt/devops/task02"
 
 SSH_KEY_FILE="$(mktemp)"
 # приватный ключ не должен пережить скрипт ни при успехе, ни при ошибке
