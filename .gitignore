@@ -2,6 +2,8 @@
 .env
 *.env
 !.env.example
+secrets/
+credentials.txt
 
 # Ключи и сертификаты
 *.pem
@@ -11,24 +13,42 @@
 id_rsa*
 *.pfx
 
-# Резервные копии
+# Резервные копии и данные пользователей: хранятся отдельно от архива с исходными файлами
 *.sql
 *.dump
 *.tar
 *.tar.gz
 *.zip
+*.gpg
 backup*/
+backups/
+restore/
 
 # Docker
 docker-compose.override.yml
 
-# Логи
+# Данные стендов (создаются при запуске, bind-mount рядом с configs/)
+data/
+volumes/
+
+# Логи (журналы в evidence/ нужны, они разрешены ниже)
 *.log
 logs/
 
-# Данные, которые не должны попадать в репозиторий
-data/
-volumes/
+# Клоны репозиториев, снятые для evidence (внутри лежат вложенные .git)
+task*/evidence/demo/
+task*/evidence/demo-clone/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Материалы задания и служебные файлы
+*.pdf
+.cogito-folder.json
 
 # ОС и редакторы
 .DS_Store
@@ -36,4 +56,11 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-.DS_Store
+
+# ---- исключения: нужные файлы, которые попадали под общие правила выше ----
+
+# init-скрипт БД задания 03 (правило *.sql его скрывало)
+!task03/configs/01-items.sql
+
+# журналы в evidence (правило *.log их скрывало): faults.log, backup.log, set-health.log
+!task*/evidence/*.log
