@@ -6,9 +6,8 @@
 
 Одной командой на любом VPS (нужен git):
 ```bash
-git clone https://github.com/<OWNER>/<REPO>.git /opt/devops
+git clone https://github.com/nlbeglov/student-danil-devops.git /opt/devops
 ```
-Для закрытого репозитория вместо URL используйте адрес с токеном (`https://<токен>@github.com/<OWNER>/<REPO>.git`) или deploy key.
 
 Чистому VPS (Ubuntu/Debian) нужны Docker Engine с Compose plugin, restic (для задания 03) и файрвол с открытыми только 22, 80, 443. Если Docker ещё не установлен:
 ```bash
