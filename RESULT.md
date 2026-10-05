@@ -2,17 +2,19 @@
 - Имя: **Раянов Данил**
 - Дата начала: **16.09.2026**
 - Дата окончания: **05.10.2026**
-- Общее затраченное время: **62 часа**
+- Общее затраченное время: **66 часов**
 
 ## Сводная таблица
 
 | Номер задания | Статус    | Затраченные часы | Основной адрес                                                                                                   | Ссылка на подробный отчет            |
 | ------------- | --------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| 1             | частично  | 20               | https://git.politblocks.com                                                                                      | [task01/RESULT.md](task01/RESULT.md) |
-| 2             | частично  | 15        | https://test0.politblocks.com                                                                                    | [task02/RESULT.md](task02/RESULT.md) |
-| 3             | не выполнено | 10     | https://test1.politblocks.com                                                                                                          | [task03/RESULT.md](task03/RESULT.md) |
-| 4             | выполнено | 8                | https://test0.politblocks.com (Kuma), https://test1.politblocks.com (ntfy), https://test3.politblocks.com/health | [task04/RESULT.md](task04/RESULT.md) |
-| 5             | выполнено | 9                | https://git.politblocks.com                                                                                      | [task05/RESULT.md](task05/RESULT.md) |
+| 1             | выполнено | 22               | https://a1.fdghyt.com (копия: https://danil1.fdghyt.com)                                                         | [task01/RESULT.md](task01/RESULT.md) |
+| 2             | выполнено | 16               | https://a2.fdghyt.com                                                                                            | [task02/RESULT.md](task02/RESULT.md) |
+| 3             | выполнено | 11               | https://a3.fdghyt.com/a.txt                                                                                      | [task03/RESULT.md](task03/RESULT.md) |
+| 4             | выполнено | 9                | https://a5.fdghyt.com (Kuma), https://a6.fdghyt.com (ntfy), https://danil2.fdghyt.com:8443/health (цель)        | [task04/RESULT.md](task04/RESULT.md) |
+| 5             | выполнено | 8                | https://a4.fdghyt.com                                                                                            | [task05/RESULT.md](task05/RESULT.md) |
+
+Основной VPS: 144.31.119.139 (Senko Digital, 2 vCPU / 4 GB / 60 GB), цель мониторинга задания 04 и внешнее хранилище restic задания 03: 130.17.27.121.
 
 ## Общий маршрут проверки (10–15 минут)
 
