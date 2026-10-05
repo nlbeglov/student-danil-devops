@@ -45,14 +45,14 @@ echo "[3/3] Перезагружаем конфигурацию (reload, без 
 docker compose exec -T nginx nginx -s reload
 echo "$(stamp) health=$MODE" >> "$LOG_FILE"
 
-# Контрольный запрос по HTTPS: код зависит от режима, порт 443 отвечает в обоих.
+# Контрольный запрос по HTTPS: код зависит от режима, HTTPS-порт отвечает в обоих.
 # reload асинхронный: новые процессы nginx стартуют не мгновенно, поэтому ждём нужного кода до 10 секунд, вместо того чтобы проверять один раз сразу.
 EXPECTED=200; [ "$MODE" = "down" ] && EXPECTED=503
 CODE=""
 for _ in $(seq 1 10); do
-    CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "https://${TARGET_DOMAIN}/health" || true)"
+    CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "https://${TARGET_DOMAIN}:${HTTPS_PORT:-443}/health" || true)"
     [ "$CODE" = "$EXPECTED" ] && break
     sleep 1
 done
-echo "https://${TARGET_DOMAIN}/health -> HTTP $CODE"
+echo "https://${TARGET_DOMAIN}:${HTTPS_PORT:-443}/health -> HTTP $CODE"
 [ "$CODE" = "$EXPECTED" ] || { echo "ОЖИДАЛСЯ $EXPECTED, получен $CODE" >&2; exit 1; }

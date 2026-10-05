@@ -2,7 +2,7 @@
 # Использование: ./scripts/check.sh [target|monitor]
 # Внешняя проверка стенда по HTTPS: можно запускать с любого компьютера (с VPS или со своего).
 # Роль target или monitor дополнительно проверяет контейнеры Compose на этом VPS.
-# Адреса: переменные TARGET_DOMAIN, KUMA_DOMAIN, NTFY_DOMAIN; иначе из configs/.env своей роли
+# Адреса: переменные TARGET_DOMAIN, TARGET_PORT (HTTPS-порт цели), KUMA_DOMAIN, NTFY_DOMAIN; иначе из configs/.env своей роли
 # (если он есть на этой машине); иначе адреса из README.
 # Код возврата: 0 — автоматические проверки пройдены, 1 — есть провалы.
 set -uo pipefail
@@ -15,6 +15,9 @@ TARGET_DOMAIN="${TARGET_DOMAIN:-$(env_get "$SCRIPT_DIR/../target-vps/configs/.en
 KUMA_DOMAIN="${KUMA_DOMAIN:-$(env_get "$SCRIPT_DIR/../monitor-vps/configs/.env" KUMA_DOMAIN)}"
 NTFY_DOMAIN="${NTFY_DOMAIN:-$(env_get "$SCRIPT_DIR/../monitor-vps/configs/.env" NTFY_DOMAIN)}"
 TARGET_DOMAIN="${TARGET_DOMAIN:-danil2.fdghyt.com}"
+# HTTPS-порт цели: на VPS 130.17.27.121 порт 443 занят чужим сервисом, поэтому 8443
+TARGET_PORT="${TARGET_PORT:-$(env_get "$SCRIPT_DIR/../target-vps/configs/.env" HTTPS_PORT)}"
+TARGET_PORT="${TARGET_PORT:-8443}"
 KUMA_DOMAIN="${KUMA_DOMAIN:-a5.fdghyt.com}"
 NTFY_DOMAIN="${NTFY_DOMAIN:-a6.fdghyt.com}"
 TOPIC="${NTFY_TOPIC:-monitor-alerts}"
@@ -38,10 +41,10 @@ echo "Проверка: $(date +%Y-%m-%dT%H:%M:%S%z)"
 echo ""
 echo "[1/4] VPS-A (цель): HTTPS и /health"
 expect_code "http://$TARGET_DOMAIN (редирект)" "301|302|307|308" "$(code "http://$TARGET_DOMAIN/")"
-HEALTH="$(code "https://$TARGET_DOMAIN/health")"
+HEALTH="$(code "https://$TARGET_DOMAIN:$TARGET_PORT/health")"
 echo "  /health сейчас -> $HEALTH (200 в режиме up, 503 в режиме down)"
 expect_code "/health" "200|503" "$HEALTH"
-if nc -z -w 5 "$TARGET_DOMAIN" 443 2>/dev/null; then ok "TCP 443 открыт"; else fail "TCP 443 закрыт"; fi
+if nc -z -w 5 "$TARGET_DOMAIN" "$TARGET_PORT" 2>/dev/null; then ok "TCP $TARGET_PORT открыт"; else fail "TCP $TARGET_PORT закрыт"; fi
 
 echo ""
 echo "[2/4] VPS-B (мониторинг): Kuma и ntfy по HTTPS"

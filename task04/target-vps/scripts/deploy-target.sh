@@ -24,5 +24,5 @@ docker compose up -d
 echo "[3/3] Проверяем"
 docker compose ps
 echo ""
-echo "Дальше:  curl -i https://$TARGET_DOMAIN/health   (ожидается HTTP 200)"
+echo "Дальше:  curl -i https://$TARGET_DOMAIN:${HTTPS_PORT:-443}/health   (ожидается HTTP 200)"
 echo "Переключение: $SCRIPT_DIR/set-health.sh up|down"

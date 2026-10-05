@@ -11,7 +11,7 @@ IP 130.17.27.121. Домен:
 - danil2.fdghyt.com  (цель мониторинга)
 
 Сервисы:
-- caddy :80/:443 (свой, в `target-vps`)
+- caddy :80 и :8443 (свой, в `target-vps`; HTTPS-порт 8443, потому что 443 на этом VPS занят другим сервисом, см. `HTTPS_PORT` в `.env`)
 - nginx :80 /health (200 | 503)
 
 2. Senko Digital (Хельсинки, Финляндия) 2 vCPU / 4GB RAM / disk: 60GB
@@ -47,7 +47,8 @@ task04/
 |---|---|---|---|
 | 22 | оба | SSH | публично |
 | 80 | оба | HTTP → редирект на HTTPS (Caddy: на VPS-A свой, на VPS-B общий) | публично |
-| 443 | оба | HTTPS (Caddy: на VPS-A свой, на VPS-B общий) | публично |
+| 443 | VPS-B | HTTPS (общий Caddy) | публично |
+| 8443 | VPS-A | HTTPS цели (свой Caddy; 443 на VPS-A занят чужим сервисом, его не трогаем) | публично |
 | 80 (nginx) | target-vps | nginx `/health` | только внутренняя сеть Compose |
 | 3001 | monitor-vps | Uptime Kuma | только внутренняя сеть Compose |
 | 80 (ntfy) | monitor-vps | ntfy | только внутренняя сеть Compose |
@@ -59,9 +60,9 @@ task04/
 ### target-vps (VPS-A)
 ```bash
 cd /opt/devops/task04/target-vps/configs
-cp .env.example .env && nano .env        # TARGET_DOMAIN=danil2.fdghyt.com
+cp .env.example .env && nano .env        # TARGET_DOMAIN=danil2.fdghyt.com, HTTPS_PORT=8443 (443, если он свободен)
 ../scripts/deploy-target.sh
-curl -i https://danil2.fdghyt.com/health
+curl -i https://danil2.fdghyt.com:8443/health
 ../scripts/set-health.sh up|down         # переключение /health: 200 или 503
 ```
 
@@ -97,7 +98,7 @@ cd /opt/devops/task04
 
 ## Ручные действия
 - DNS: A-запись `danil2` на IP VPS-A (130.17.27.121) и две A-записи `a5`, `a6` на IP VPS-B (144.31.119.139).
-- Файрвол: снаружи только 22 (SSH), 80, 443 (делает `sudo ../common/prepare-vps.sh`).
+- Файрвол: на VPS-B снаружи только 22 (SSH), 80, 443 (делает `sudo ../common/prepare-vps.sh`); на VPS-A дополнительно публикуется 8443 (HTTPS цели). `prepare-vps.sh` на VPS-A не запускать: на нём работает чужой сервис на 443.
 - Запуск `deploy-target.sh` на VPS-A, `deploy-monitor.sh` и `setup-secrets.sh` на VPS-B. Пароли генерируются и сохраняются в `monitor-vps/secrets/credentials.txt` (вне git), значения передаются проверяющему отдельно.
 - Создание администратора Uptime Kuma в веб-интерфейсе (пароль `KUMA_ADMIN_PASSWORD` из `credentials.txt`).
 - Настройка уведомления ntfy и двух мониторов в веб-интерфейсе Kuma (раздел ниже).
@@ -126,10 +127,10 @@ cd /opt/devops/task04
 | Поле | Монитор 1 | Монитор 2 |
 |---|---|---|
 | Monitor Type | HTTP(s) | TCP Port |
-| Friendly Name | target-http-health | target-tcp-443 |
-| URL | https://danil2.fdghyt.com/health | - |
+| Friendly Name | target-http-health | target-tcp-8443 |
+| URL | https://danil2.fdghyt.com:8443/health | https://danil2.fdghyt.com:8443/ (см. примечание) |
 | Hostname | - | danil2.fdghyt.com |
-| Port | - | 443 |
+| Port | - | 8443 |
 | Heartbeat Interval | 30 | 30 |
 | Retries | 0 | 0 |
 | Accepted Status Codes | 200 | - |
@@ -138,3 +139,5 @@ cd /opt/devops/task04
 5. Клиент
 
 Открываем сайт ntfy, заходим под пользователем reader и подписываемся на `monitor-alerts`
+
+Примечание. В Kuma 1.23 уведомление ntfy всегда добавляет кнопку «Open <монитор>» с адресом из поля `url`; у TCP-монитора это поле в интерфейсе скрыто и пустое, из-за чего ntfy отвечает 400 и сообщение о состоянии TCP-проверки не доставляется. Поэтому у TCP-монитора в поле `url` записан адрес цели (при создании через API или в `kuma.db` это обычное поле монитора).

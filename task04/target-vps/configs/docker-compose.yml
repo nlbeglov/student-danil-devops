@@ -13,9 +13,11 @@ services:
       - nginx
     ports:
       - "80:80"
-      - "443:443"
+      # HTTPS-порт хоста совпадает с портом внутри контейнера (редиректы и сертификаты используют именно его)
+      - "${HTTPS_PORT:-443}:${HTTPS_PORT:-443}"
     environment:
       - TARGET_DOMAIN=${TARGET_DOMAIN}
+      - HTTPS_PORT=${HTTPS_PORT:-443}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

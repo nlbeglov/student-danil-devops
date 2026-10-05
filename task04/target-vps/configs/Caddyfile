@@ -1,3 +1,13 @@
+{
+	# 443 по умолчанию; на VPS, где 443 занят другим сервисом, HTTPS_PORT=8443 (сертификаты выпускаются через HTTP-01 на порту 80)
+	https_port {$HTTPS_PORT:443}
+}
+
+# HTTP -> HTTPS с явным портом (автоматический редирект Caddy не добавляет нестандартный порт)
+http://{$TARGET_DOMAIN} {
+	redir https://{$TARGET_DOMAIN}:{$HTTPS_PORT:443}{uri} permanent
+}
+
 {$TARGET_DOMAIN} {
 	reverse_proxy nginx:80
 }
